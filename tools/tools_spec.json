@@ -1,0 +1,278 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "consultar_ativo",
+      "description": "Consulta os dados cadastrais e técnicos de um ativo por meio de sua TAG. Retorna somente informações existentes no cadastro, sinalizando campos ausentes ou não disponíveis. Caso o ativo não seja encontrado, informe que não há cadastro correspondente e não invente características ou recomendações específicas para esse equipamento. Em caso de indisponibilidade temporária da consulta, informe que não foi possível concluir a operação e não apresente dados como se tivessem sido consultados.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "TAG única de identificação do ativo que será consultado."
+          }
+        },
+        "required": [
+          "tag"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+
+  {
+    "type": "function",
+    "function": {
+      "name": "consultar_historico_falhas",
+      "description": "Consulta o histórico de falhas de um ativo no período solicitado, utilizando 12 meses como padrão. Permite filtrar os registros por tipo de falha. Retorna somente ocorrências efetivamente registradas. Caso não existam ocorrências no período consultado, informe que não foram encontrados registros nesse intervalo, sem concluir que o ativo nunca apresentou falhas. Sinalize dados ausentes, períodos sem cobertura e eventuais limitações dos registros. Em caso de indisponibilidade temporária, informe que a consulta não pôde ser concluída.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "TAG de identificação do ativo cujo histórico será consultado."
+          },
+          "janela_meses": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 12,
+            "description": "Quantidade de meses anteriores à consulta considerados na busca. O padrão é de 12 meses."
+          },
+          "tipo_falha": {
+            "type": "string",
+            "enum": [
+              "perda_de_imagem",
+              "imagem_degradada",
+              "falha_de_conectividade",
+              "falha_de_alimentacao",
+              "falha_mecanica",
+              "outro"
+            ],
+            "description": "Filtro opcional pelo tipo de falha registrado. Quando omitido, consulta todos os tipos de falha."
+          }
+        },
+        "required": [
+          "tag"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+
+  {
+    "type": "function",
+    "function": {
+      "name": "consultar_condicoes_ambientais",
+      "description": "Consulta os registros ambientais associados a um ativo em torno da data e hora informadas. Utiliza uma janela padrão de 30 minutos antes e depois do horário de referência. Retorna somente medições existentes, sinalizando registros ausentes, incompletos ou indisponíveis. A presença de uma condição ambiental simultânea a uma falha não comprova, isoladamente, sua causa. Em caso de indisponibilidade temporária, informe que a consulta não pôde ser concluída.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "TAG de identificação do ativo relacionado à ocorrência."
+          },
+          "data_hora": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora de referência da ocorrência em formato ISO 8601, com indicação de fuso horário quando disponível."
+          },
+          "janela_minutos": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 30,
+            "description": "Intervalo, em minutos, considerado antes e depois da data e hora informadas. O padrão é de 30 minutos para cada lado."
+          }
+        },
+        "required": [
+          "tag",
+          "data_hora"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+
+  {
+    "type": "function",
+    "function": {
+      "name": "consultar_procedimento",
+      "description": "Consulta procedimentos técnicos documentados para o tipo de ativo e a modalidade de intervenção informados. Pode utilizar fabricante e modelo como filtros complementares. Retorna apenas procedimentos existentes na base de conhecimento, considerando sua versão e validade quando essas informações estiverem disponíveis. Caso não exista procedimento correspondente, informe a ausência de documentação aplicável. Em caso de indisponibilidade temporária da consulta, informe que a operação não pôde ser concluída. A consulta ao procedimento não representa autorização para executar uma intervenção, nem substitui os requisitos de segurança, qualificação profissional ou validação do responsável.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tipo_ativo": {
+            "type": "string",
+            "description": "Categoria ou tipo do equipamento ao qual o procedimento deverá se aplicar."
+          },
+          "tipo_intervencao": {
+            "type": "string",
+            "enum": [
+              "corretiva",
+              "preventiva",
+              "inspecao",
+              "cbm"
+            ],
+            "description": "Modalidade da intervenção ou atividade para a qual o procedimento será consultado."
+          },
+          "fabricante": {
+            "type": "string",
+            "description": "Fabricante do equipamento, quando conhecido. Parâmetro opcional para refinar a consulta."
+          },
+          "modelo": {
+            "type": "string",
+            "description": "Modelo do equipamento, quando conhecido. Parâmetro opcional para refinar a consulta."
+          }
+        },
+        "required": [
+          "tipo_ativo",
+          "tipo_intervencao"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+
+  {
+    "type": "function",
+    "function": {
+      "name": "calcular_metricas_confiabilidade",
+      "description": "Calcula métricas de confiabilidade de um ativo com base nos registros históricos de falhas e no tempo de exposição operacional disponível. Contempla a taxa de falhas (λ), a confiabilidade R(t), o MTBF (Mean Time Between Failures), a análise RGA (Reliability Growth Analysis) e a análise LDA (Life Data Analysis), quando houver dados adequados. A taxa de falhas deve considerar a quantidade de falhas e o tempo de operação válido e correspondente ao período analisado. A confiabilidade R(t) utiliza o modelo exponencial R(t) = e^(-λt), conforme o briefing, respeitando a hipótese de taxa de falhas constante e a compatibilidade entre as unidades de λ e do tempo de missão. O MTBF deve ser calculado somente quando houver quantidade de falhas e tempo de operação válidos e correspondentes ao mesmo período e conjunto de ativos analisados. Sob a hipótese de taxa de falhas constante, pode ser relacionado a 1/λ. Quando não houver falhas registradas, não apresente MTBF infinito nem conclua que o ativo possui confiabilidade perfeita. A análise RGA exige dados cronológicos de falhas, exposição operacional comparável e registros de intervenções ou modificações relevantes. A análise LDA exige dados adequados de vida até a falha e, quando aplicável, observações censuradas. Diferencie dados ausentes de valores iguais a zero. Caso as horas de operação sejam fornecidas externamente, valide sua origem e compatibilidade com o período analisado. Se os dados forem insuficientes, informe quais métricas não puderam ser calculadas e justifique a limitação. Não invente dados nem produza estimativas sem fundamentação. Os resultados apoiam a análise técnica e não substituem a avaliação do profissional responsável. O retorno deverá apresentar as métricas calculadas, seus valores, unidades, período considerado, dados utilizados e limitações identificadas.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "TAG de identificação do ativo cuja confiabilidade será analisada."
+          },
+          "periodo_meses": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 12,
+            "description": "Período histórico, em meses, utilizado na análise. O padrão é de 12 meses."
+          },
+          "horas_operacao": {
+            "type": "number",
+            "minimum": 0.000001,
+            "description": "Tempo de operação acumulado, em horas, quando fornecido externamente e validado. Deve corresponder ao período e ao conjunto de falhas analisados. Se não for informado, a ferramenta deverá consultar os registros disponíveis. O valor deve ser positivo; ausência de informação não deve ser interpretada como zero horas."
+          },
+          "tempo_missao_horas": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Calcula métricas de confiabilidade de um ativo com base nos registros históricos de falhas e no tempo de exposição operacional disponível. Contempla a taxa de falhas (λ), a confiabilidade R(t), o MTBF (Mean Time Between Failures), a análise RGA (Reliability Growth Analysis) e a análise LDA (Life Data Analysis), quando houver dados adequados. A taxa de falhas deve ser calculada pela relação λ = N/T, em que N representa a quantidade de falhas registradas e T representa o tempo total válido de operação, considerando o mesmo período e conjunto de ativos analisados. O resultado deve ser expresso em falhas por hora quando o tempo de operação estiver em horas. Quando não houver falhas registradas, informe a quantidade zero de falhas observadas no período, mas não interprete esse resultado como comprovação de taxa de falhas real igual a zero ou confiabilidade perfeita. A confiabilidade R(t) utiliza o modelo exponencial R(t) = e^(-λt), conforme o briefing, respeitando a hipótese de taxa de falhas constante e a compatibilidade entre as unidades de λ e do tempo de missão. O cálculo de R(t) exige o fornecimento de tempo_missao_horas. Caso esse parâmetro não seja informado, não invente um valor nem calcule R(t); apresente essa métrica como não calculada e informe a necessidade do dado. O MTBF deve ser calculado somente quando houver quantidade de falhas e tempo de operação válidos e correspondentes ao mesmo período e conjunto de ativos analisados. Sob a hipótese de taxa de falhas constante, pode ser relacionado a 1/λ. Quando não houver falhas registradas, não apresente MTBF infinito nem conclua que o ativo possui confiabilidade perfeita. A análise RGA exige dados cronológicos de falhas, exposição operacional comparável e registros de intervenções ou modificações relevantes. O método de análise deverá ser escolhido conforme a disponibilidade e a adequação dos dados, sem presumir crescimento da confiabilidade quando não houver evidências suficientes. A análise LDA exige dados adequados de vida até a falha e, quando aplicável, observações censuradas. A distribuição estatística e o método de estimação deverão ser selecionados somente quando os dados permitirem sua aplicação fundamentada. Diferencie dados ausentes de valores iguais a zero. Caso as horas de operação sejam fornecidas externamente, valide sua origem e compatibilidade com o período analisado. Se os dados forem insuficientes, informe quais métricas não puderam ser calculadas e justifique a limitação. Não invente dados nem produza estimativas sem fundamentação. Os resultados apoiam a análise técnica e não substituem a avaliação do profissional responsável. O retorno deverá apresentar as métricas calculadas, seus valores, unidades, período considerado, dados utilizados e limitações identificadas."
+          }
+        },
+        "required": [
+          "tag"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+
+  {
+    "type": "function",
+    "function": {
+      "name": "listar_ativos_por_criticidade",
+      "description": "Lista ativos cadastrados conforme os filtros informados, utilizando exclusivamente as classificações de criticidade e situações operacionais existentes na base. Não cria, altera ou presume classificações. Quando nenhum ativo corresponder aos filtros, informe que não foram encontrados resultados. Sinalize eventuais dados cadastrais ausentes. Em caso de indisponibilidade temporária, informe que a consulta não pôde ser concluída.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "criticidade": {
+            "type": "string",
+            "enum": [
+              "alta",
+              "media",
+              "baixa"
+            ],
+            "description": "Filtro opcional pela classificação de criticidade cadastrada para o ativo."
+          },
+          "tipo_ativo": {
+            "type": "string",
+            "description": "Filtro opcional pelo tipo ou categoria do equipamento."
+          },
+          "situacao_operacional": {
+            "type": "string",
+            "enum": [
+              "operacional",
+              "degradado",
+              "indisponivel",
+              "em_manutencao"
+            ],
+            "description": "Filtro opcional pela situação operacional registrada para o ativo."
+          },
+          "limite": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 20,
+            "description": "Quantidade máxima de ativos retornados. O padrão é de 20 registros."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+
+  {
+    "type": "function",
+    "function": {
+      "name": "abrir_ordem_servico",
+      "description": "Cria uma ordem de serviço simulada para fins acadêmicos, após confirmação explícita e recente de um profissional responsável. O campo autorizacao_profissional deve ser true, mas seu valor não comprova autorização humana: a aplicação deverá validar a confirmação por mecanismo independente antes de permitir a criação. A aplicação também deverá verificar se janela_fim é posterior a janela_inicio quando ambos forem informados. Não cria ordens reais, não se integra aos sistemas da Motiva, não agenda equipes e não executa intervenções físicas. Em caso de ausência de autorização válida, dados inconsistentes ou falha na criação, a operação deverá ser recusada ou sinalizada como não concluída. Em caso de sucesso, o retorno simulado deverá apresentar: identificador da OS, TAG do ativo, modalidade de intervenção, prioridade e situação da criação.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "TAG de identificação do ativo para o qual será criada a ordem de serviço simulada."
+          },
+          "tipo_intervencao": {
+            "type": "string",
+            "enum": [
+              "corretiva",
+              "preventiva",
+              "inspecao",
+              "cbm"
+            ],
+            "description": "Modalidade da intervenção registrada na ordem de serviço."
+          },
+          "descricao": {
+            "type": "string",
+            "description": "Descrição objetiva da ocorrência, necessidade de atendimento ou atividade proposta."
+          },
+          "prioridade": {
+            "type": "string",
+            "enum": [
+              "alta",
+              "media",
+              "baixa"
+            ],
+            "description": "Prioridade de atendimento definida e validada pelo profissional responsável."
+          },
+          "autorizacao_profissional": {
+            "type": "boolean",
+            "const": true,
+            "description": "Deve ser true para solicitar a criação simulada. Não substitui a confirmação humana nem a validação independente obrigatória da aplicação."
+          },
+          "janela_inicio": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora previstas para o início do atendimento, em formato ISO 8601. Parâmetro opcional."
+          },
+          "janela_fim": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora previstas para o término do atendimento, em formato ISO 8601. Parâmetro opcional. Quando janela_inicio também for informada, deverá ser posterior a ela."
+          }
+        },
+        "required": [
+          "tag",
+          "tipo_intervencao",
+          "descricao",
+          "prioridade",
+          "autorizacao_profissional"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+]
