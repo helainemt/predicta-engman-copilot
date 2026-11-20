@@ -6,12 +6,12 @@
 
 **Integrantes:**
 
-|Nome completo | RM | Turma|
-|---|---|---|
-|Beatriz Lacerda Rodrigues | RM 575082 | 1CCPB|
-| Helaine Gonçalves Mota | RM 576838 | 1CCPB|
-| Mariana Bello Auada | RM 575333 | 1CCPB|
-| Vitória Domingues Alves de Carvalho | RM 574583 | 1CCPB|
+|Nome completo | RM | Turma | Papéis |
+|---|---|---|---|
+|Beatriz Lacerda Rodrigues | RM 575082 | 1CCPB| Prompt Engineer + Documentação e Riscos |
+| Helaine Gonçalves Mota | RM 576838 | 1CCPB| Product Owner + Documentação e Riscos |
+| Mariana Bello Auada | RM 575333 | 1CCPB| Arquiteto/TechLead + Documentação e Riscos |
+| Vitória Domingues Alves de Carvalho | RM 574583 | 1CCPB | QA/Avaliação + Documentação e Riscos |
 
 ## 2. Problema abordado
 
