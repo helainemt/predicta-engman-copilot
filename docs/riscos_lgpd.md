@@ -33,10 +33,10 @@ O PREDICTA pode apresentar informações incorretas, afirmar uma causa sem evid�
 **Rastreabilidade:**
 
 - **System Prompt:** blocos REGRAS, ESCOPO e BORDA.
-- **Fluxograma:** verificação da existência e suficiência dos dados antes da análise e da priorização.
+- **Fluxograma:** blocos 3 - Montagem de Texto, 5 - Decisão de Tool, 6 - Execução da Tool e 7 - Guardrail de Saída
 - **Eval Set:** EVAL-001, EVAL-002, EVAL-006 e EVAL-008.
-- **Base de conhecimento:** identificação da origem, versão e validade das informações utilizadas.
-- **Tools:** tratamento de dados ausentes, ativos não encontrados e falhas nas consultas.
+- **Base de conhecimento:** catálogo de ativos, histórico de falhas fo FSM e fichas técnicas do equipamento
+- **Tools:** `consultar_ativo`, `consultar_historico_falhas`, `consultar_procedimento`
 
 ### Risco 2 — Prompt Injection e manipulação do assistente
 
@@ -63,9 +63,9 @@ O PREDICTA pode receber instruções maliciosas ou manipulativas em mensagens de
 **Rastreabilidade:**
 
 - **System Prompt:** blocos REGRAS e BORDA.
-- **Fluxograma:** validação das solicitações e manutenção dos limites de autorização antes de qualquer ação.
+- **Fluxograma:** blocos 2 - Guardrail de Entrada, 3 - Montagem de Texto, 5 - Decisão de Tool, 6 - Execução da Tool e 7 - Guardrail de Saída
 - **Eval Set:** EVAL-008 e EVAL-009.
-- **Base de conhecimento:** tratamento dos documentos recuperados como fontes de informação, não como instruções para o assistente.
+- **Base de conhecimento:** briefing da Motiva e documentos recuperados via RAG, que devem ser tratados como fontes de informação, nunca como instruções que substituem o System Prompt.
 - **Tools:** regras de acionamento e autorização, especialmente em `abrir_ordem_servico`.
 
 ### Risco 3 — Risco operacional e de segurança nas intervenções
@@ -95,9 +95,9 @@ O PREDICTA pode produzir recomendações inadequadas para situações que envolv
 **Rastreabilidade:**
 
 - **System Prompt:** blocos ESCOPO, REGRAS e BORDA.
-- **Fluxograma:** consulta aos procedimentos antes da recomendação de intervenção.
+- **Fluxograma:** blocos 2 - Guardrail de Entrada, 3 - Montagem do Texto, 5 - Decisão de Tool, 6 - Execução da Tool e 7 - Guardrail de Saída
 - **Eval Set:** EVAL-003 e EVAL-010.
-- **Base de conhecimento:** Procedimentos Operacionais (POPs) e referências de segurança.
+- **Base de conhecimento:** Procedimentos Operacionais (POPs), Normar e requisitos de segurança, Fichas técnicas dos equipaementos.
 - **Tools:** `consultar_procedimento`.
 
 ### Risco 4 — Viés na priorização de ocorrências
@@ -125,9 +125,9 @@ O PREDICTA pode apresentar uma priorização enviesada, favorecendo determinados
 **Rastreabilidade:**
 
 - **System Prompt:** blocos REGRAS e FORMATO.
-- **Fluxograma:** etapa de análise de criticidade e priorização.
-- **Eval Set:** EVAL-014, que verifica se ativos com características equivalentes recebem tratamento coerente, sem favorecimento baseado exclusivamente na localização.
-- **Base de conhecimento:** Plano de Manutenção e Inventário de Ativos, incluindo a criticidade cadastrada.
+- **Fluxograma:** blocos 3 - Montagem de Texto, 4 - Chamada ao LLM, 5 - Decisão de Tool, 6 - Execução da Tool e 7 - Guardrail de Saída
+- **Eval Set:** EVAL-014 e EVAL-013
+- **Base de conhecimento:** catálogo de ativos, plano de manutenção preventiva e matriz de criticidade
 - **Tools:** `listar_ativos_por_criticidade`.
 
 ### Risco 5 — LGPD: exposição de dados pessoais
@@ -157,6 +157,7 @@ O PREDICTA pode receber, consultar ou processar dados pessoais sem necessidade o
 **Rastreabilidade:**
 
 - **System Prompt:** blocos REGRAS e BORDA, com limites para uso e divulgação de informações.
+- **Fluxograma:** blocos 2 - Guardrail de Entrada, 3 - Montagem de Texto, Bloco 4 - Chamada ao LLM, 6 - Execução da Tool, 7 - Guardrail de Saída e 8 — Resposta e Histórico
 - **Eval Set:** EVAL-012, teste específico de privacidade e proteção de dados.
 - **Base de conhecimento:** critérios de exclusão de dados pessoais desnecessários, credenciais e informações confidenciais sem autorização.
 - **Arquitetura:** envio de dados a provedores externos condicionado à autorização e às medidas de proteção aplicáveis.
@@ -192,10 +193,8 @@ Esse risco é distinto da exposição de dados pessoais: mesmo quando uma inform
 **Rastreabilidade:**
 
 - **System Prompt:** blocos ESCOPO e REGRAS.
-- **Fluxograma:** controle das informações utilizadas nas consultas e transmitidas ao modelo.
-- **Eval Set:** não há, na versão atual, um caso específico que teste isoladamente a confidencialidade operacional. A mitigação é contemplada principalmente pelas regras de arquitetura, proteção de dados e gestão de credenciais.
+- **Fluxograma:** blocos 2 - Guardrail de Entrada, 3 - Montagem de Texto, Bloco 4 - Chamada ao LLM, 6 - Execução da Tool, 7 - Guardrail de Saída e 8 — Resposta e Histórico
 - **Arquitetura:** avaliação das condições de segurança e tratamento de dados dos provedores de API selecionados.
-- **Repositório:** proteção de segredos e credenciais, sem inserção de chaves no código ou em arquivos públicos.
 
 ### Risco 7 — Excesso de confiança nas respostas do assistente
 
@@ -223,9 +222,10 @@ Os usuários podem interpretar as respostas do PREDICTA como diagnósticos defin
 **Rastreabilidade:**
 
 - **System Prompt:** blocos REGRAS, FORMATO e TOM.
-- **Fluxograma:** apresentação da análise, das evidências, das hipóteses e das limitações antes do encaminhamento.
-- **Eval Set:** EVAL-002, EVAL-008 e EVAL-011. O EVAL-014 também oferece verificação complementar sobre a necessidade de critérios objetivos na priorização.
-- **Base de conhecimento:** identificação da origem e da confiabilidade das informações utilizadas.
+- **Fluxograma:** blocos 3 - Montagem de Texto, Bloco 4 - Chamada ao LLM, 7 - Guardrail de Saída e 8 — Resposta e Histórico
+- **Eval Set:** EVAL-002, EVAL-008, EVAL-011 e EVAL-014
+- **Base de conhecimento:** catálogo de ativos, histórico de falhas do FSM e fichas técnincas dos equipamentos
+- **Tools:** `consultar_ativo`, `consultar_historico_falhas`. `consultar_procedimento`. e `listar_ativos_por_criticidade`.
 
 ### Risco 8 — Estouro da janela de contexto e perda de informações relevantes
 
@@ -254,9 +254,9 @@ Durante conversas extensas, o volume de mensagens, documentos recuperados e resu
 **Rastreabilidade:**
 
 - **System Prompt:** bloco BORDA, com orientações para continuidade e recuperação do contexto da conversa.
-- **Eval Set:** EVAL-011 verifica a recuperação de informações dentro da mesma sessão, mas não testa diretamente o estouro da janela de contexto.
+- **Fluxograma:** blocos 3 - Montagem de Texto, Bloco 4 - Chamada ao LLM e 8 — Resposta e Histórico
+- **Eval Set:** EVAL-011 
 - **Arquitetura:** gerenciamento de contexto, recuperação seletiva de informações e limites de tokens.
-- **Política de contexto:** será detalhada no tratamento do bônus de gerenciamento quantitativo de contexto e tokens.
 
 ### Risco 9 — Interpretação ambiental equivocada
 
@@ -284,10 +284,10 @@ O PREDICTA pode confundir uma degradação de imagem causada por condições amb
 **Rastreabilidade:**
 
 - **System Prompt:** blocos REGRAS e FORMATO, com distinção entre evidências e hipóteses.
-- **Fluxograma:** etapa de investigação técnica e comparação de evidências ambientais e históricas.
+- **Fluxograma:** blocos 3 - Montagem de Texto, Bloco 4 - Chamada ao LLM, 5 — Decisão de Tool, 6 — Execução da Tool e 7 — Guardrail de Saída
 - **Eval Set:** EVAL-004.
-- **Base de conhecimento:** Registro de Condições Ambientais e Histórico de Falhas.
-- **Tools:** `consultar_condicoes_ambientais` e `consultar_historico_falhas`.
+- **Base de conhecimento:** histórico de falhas do FSM, boletins de ocorrência e laudos de campo, plano de manutenção preventiva e procedimentos operacionais (POPs)
+- **Tools:** `consultar_condicoes_ambientais` e `consultar_historico_falhas`
 
 ### Risco 10 — Dados incompletos, inconsistentes ou desatualizados
 
@@ -315,10 +315,10 @@ O PREDICTA pode produzir análises inadequadas ao utilizar informações incompl
 **Rastreabilidade:**
 
 - **System Prompt:** blocos REGRAS e BORDA, incluindo tratamento de dados insuficientes e conflitos entre fontes.
-- **Fluxograma:** verificação das informações do ativo e da suficiência dos dados.
+- **Fluxograma:** blocos 3 - Montagem de Texto, 5 — Decisão de Tool, 6 — Execução da Tool e 7 — Guardrail de Saída
 - **Eval Set:** EVAL-005 e EVAL-006.
-- **Base de conhecimento:** metadados de origem, versão, validade e data dos documentos.
-- **Tools:** regras de retorno e tratamento de informações ausentes nas consultas.
+- **Base de conhecimento:** catálogo de ativos, histórico de falhas do FSM, fichas técnicas dos equipamentos
+- **Tools:** `consultar_ativo`, `consultar_historico_falhas``consultar_condicoes_ambientais` e `consultar_procedimento`
 
 ### Risco 11 — Ação operacional não autorizada
 
@@ -347,8 +347,9 @@ O PREDICTA pode executar ou aparentar executar uma ação operacional sem autori
 **Rastreabilidade:**
 
 - **System Prompt:** blocos ESCOPO, REGRAS e BORDA.
-- **Fluxograma:** revisão da proposta e validação da autorização antes da abertura simulada.
+- **Fluxograma:** blocos 2 — Guardrail de Entrada, 5 - Decisão de Tool, 6 — Execução da Tool, 7 — Guardrail de Saída e 8 — Resposta e Histórico
 - **Eval Set:** EVAL-009.
+- **Base de conhecimeno:** procedimentos operacionais (POPs)
 - **Tools:** `abrir_ordem_servico`, condicionada à autorização humana explícita e à validação independente pela aplicação.
 
 ## 3. Diretrizes gerais de proteção e uso responsável
